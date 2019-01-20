@@ -24,16 +24,15 @@ app.get("/employees", (req, res) => {
 
 app.get("/managers", (req, res) => {
 
-   //var json = employeesJSON;
-    let final;
-    for (let i = 0; i < employeesJSON.length; i++) {
-        if (employeesJSON[i].isManager === true) {
+    
+    var final = [];
+   for (let i = 0; i < employeesJSON.length; i++) {
+        if (employeesJSON[i].isManager) {
            
-           
-           final += JSON.stringify(employeesJSON[i]);
+            final.push(employeesJSON[i]);
         }
     }
-    //res.setHeader('Content-Type', 'application/json'); 
+    
     res.json(final);
 });
 
@@ -41,7 +40,7 @@ app.get("/departments", (req, res) => {
     res.json(departmentsJSON);
 });
 
-
+ 
 
 
 
