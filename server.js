@@ -6,7 +6,7 @@
 *
 * Name: Steven Tran Student ID: 105629174 Date: Jan 15th, 2019
 *
-* Online (Heroku) Link: 
+* Online (Heroku) Link: https://a2-steven.herokuapp.com/
 *
 ********************************************************************************/ 
 
