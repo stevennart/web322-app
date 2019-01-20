@@ -24,15 +24,15 @@ app.get("/employees", (req, res) => {
 
 app.get("/managers", (req, res) => {
 
-    
+
     var final = [];
-   for (let i = 0; i < employeesJSON.length; i++) {
+    for (let i = 0; i < employeesJSON.length; i++) {
         if (employeesJSON[i].isManager) {
-           
+
             final.push(employeesJSON[i]);
         }
     }
-    
+
     res.json(final);
 });
 
@@ -40,7 +40,7 @@ app.get("/departments", (req, res) => {
     res.json(departmentsJSON);
 });
 
- 
+
 
 
 
