@@ -15,12 +15,97 @@ const express = require('express');
 const app = express();
 const path = require('path');
 const data = require('./data-service.js');
+const multer = require('multer');
+const fs = require('fs');
+const bodyParser = require('body-parser');
+const uploadedImagesPath = "./public/images/uploaded";
+let uploadedImagesArray = [];
+
 //const employeesJSON = require('./data/employees.json'); no longer needed because data-service module took care of reading the file contents and putting it into an array of objects. 
 //const departmentsJSON = require('./data/departments.json'); no longer needed because data-service module took care of reading the file contents and putting it into an array of objects. 
  
 const http_port = process.env.PORT || 8080;
 
-app.use(express.static('public'));
+app.use(express.static('public')); 
+
+// a3---------
+// middleware to process normal http post form data 
+app.use(bodyParser.urlencoded({extended: true}));
+
+
+// sets up a storage for images in the uploaded folder when an image is uploaded on the site. 
+const storage = multer.diskStorage(
+    
+    {
+        destination: "./public/images/uploaded",
+        
+        filename: function (req, file, cb) {
+           
+            cb(null, `${Date.now()}${path.extname(file.originalname)}`);
+        }
+    }
+    
+    
+);
+
+// this upload object has a storage property, for middleware use.
+const upload = multer(
+
+    {
+        storage: storage
+    }
+
+);
+
+// uploads image and redirects to the images route. upload.single() processes the file upload in form, the imageFIle is value of name attribute in form for file input element.  
+app.post("/images/add", upload.single("imageFile"), (req, res) => {
+    res.redirect("/images"); 
+});
+
+app.post("/employees/add", (req, res) => {
+
+    data.addEmployee(req.body).then(() => {
+        
+        res.redirect("/employees"); 
+    }).catch(() => {
+        
+    });
+
+});
+
+
+app.get("/employees/add", (req, res) => {
+    res.sendFile(path.join(`${__dirname}/views/addEmployee.html`));
+});
+
+app.get("/images/add", (req, res) => {
+    res.sendFile(path.join(`${__dirname}/views/addImage.html`))
+});
+
+app.get("/images", (req, res) => { // when in the /images route, it will read the directory of the uploaded images folder and display each image data in JSON format. 
+
+    fs.readdir(uploadedImagesPath, (err, items) => {
+
+        // for (let i = 0; i < items.length; i++) {
+        //     uploadedImagesArray.push(items[i]);
+        // }
+
+       items.forEach((element) => {
+           uploadedImagesArray.push(element);
+
+       });
+
+    });
+
+
+    res.json({images: uploadedImagesArray});
+   // res.end();
+   
+    // pass the variable as a value in the images property the variable is an array.
+
+});
+
+// end of a3 ------------
 
 app.get("/", (req, res) => {
     res.sendFile(path.join(`${__dirname}/views/home.html`));
@@ -30,13 +115,59 @@ app.get("/about", (req, res) => {
     res.sendFile(path.join(`${__dirname}/views/about.html`));
 });
 
+// a1 & a2 -----
+
 app.get("/employees", (req, res) => {
+
+    if (req.query.status == "Full Time" || req.query.status == "Part Time") {
+        data.getEmployeesByStatus(req.query.status).then((data) => {
+            res.json(data);
+        }).catch((err) => {
+            res.json({message: err});
+        });
+    }
+
+
+    if (req.query.department >= 1 || req.query.department <= 7) {
+        data.getEmployeesByDepartment(req.query.department).then((data) => {
+            res.json(data);
+        }).catch((err) => {
+            res.json({message: err});
+        });
+    }
+    
+    if (req.query.manager >= 1 || req.query.manager <= 30) {
+        data.getEmployeesByManager(req.query.manager).then((data) => {
+            res.json(data);
+        }).catch((err) => {
+            res.json({message: err});
+        });
+    }
+
 
     data.getAllEmployees().then((data) => {
         res.json(data);
     }).catch((err) => {
         res.json({message: err});
     });
+
+
+
+});
+
+
+app.get("/employee/:value", (req, res) => {
+
+   // if (req.params.value === employeeNum) {
+
+        data.getEmployeeByNum(req.params.value).then((data) => {
+            res.json(data);
+        }).catch((err) => {
+            res.json({message: err});
+        });
+
+
+   // }
 
 });
 
@@ -60,6 +191,9 @@ app.get("/departments", (req, res) => {
     });
     
 });
+
+
+
 
 app.use((req, res) => { // if route doesn't match anything above, do this.
 
@@ -87,3 +221,5 @@ data.initialize().then((data) => {
 }).catch(() => {
     console.log(`No data was fetched, server failed to start up.`);
 });
+
+// end of a1 & a2 -----
