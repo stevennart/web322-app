@@ -10,7 +10,6 @@
 *
 ********************************************************************************/ 
 
-
 const express = require('express');
 const app = express();
 const path = require('path');
@@ -19,7 +18,7 @@ const multer = require('multer');
 const fs = require('fs');
 const bodyParser = require('body-parser');
 const uploadedImagesPath = "./public/images/uploaded";
-let uploadedImagesArray = [];
+//let uploadedImagesArray = [];
 
 //const employeesJSON = require('./data/employees.json'); no longer needed because data-service module took care of reading the file contents and putting it into an array of objects. 
 //const departmentsJSON = require('./data/departments.json'); no longer needed because data-service module took care of reading the file contents and putting it into an array of objects. 
@@ -28,7 +27,7 @@ const http_port = process.env.PORT || 8080;
 
 app.use(express.static('public')); 
 
-// a3---------
+
 // middleware to process normal http post form data 
 app.use(bodyParser.urlencoded({extended: true}));
 
@@ -59,6 +58,7 @@ const upload = multer(
 
 // uploads image and redirects to the images route. upload.single() processes the file upload in form, the imageFIle is value of name attribute in form for file input element.  
 app.post("/images/add", upload.single("imageFile"), (req, res) => {
+   
     res.redirect("/images"); 
 });
 
@@ -67,12 +67,12 @@ app.post("/employees/add", (req, res) => {
     data.addEmployee(req.body).then(() => {
         
         res.redirect("/employees"); 
-    }).catch(() => {
+    }).catch((err) => {
         
+        res.json({message: err});
     });
 
 });
-
 
 app.get("/employees/add", (req, res) => {
     res.sendFile(path.join(`${__dirname}/views/addEmployee.html`));
@@ -84,28 +84,18 @@ app.get("/images/add", (req, res) => {
 
 app.get("/images", (req, res) => { // when in the /images route, it will read the directory of the uploaded images folder and display each image data in JSON format. 
 
-    fs.readdir(uploadedImagesPath, (err, items) => {
+    fs.readdir(uploadedImagesPath, (err, uploadedImages) => {
 
-        // for (let i = 0; i < items.length; i++) {
-        //     uploadedImagesArray.push(items[i]);
-        // }
+    //    items.forEach((element) => {
+    //        uploadedImagesArray.push(element);
 
-       items.forEach((element) => {
-           uploadedImagesArray.push(element);
+    //    });
 
-       });
+       res.json({images: uploadedImages});
 
     });
 
-
-    res.json({images: uploadedImagesArray});
-   // res.end();
-   
-    // pass the variable as a value in the images property the variable is an array.
-
 });
-
-// end of a3 ------------
 
 app.get("/", (req, res) => {
     res.sendFile(path.join(`${__dirname}/views/home.html`));
@@ -115,59 +105,67 @@ app.get("/about", (req, res) => {
     res.sendFile(path.join(`${__dirname}/views/about.html`));
 });
 
-// a1 & a2 -----
-
 app.get("/employees", (req, res) => {
 
-    if (req.query.status == "Full Time" || req.query.status == "Part Time") {
-        data.getEmployeesByStatus(req.query.status).then((data) => {
-            res.json(data);
+    if (req.query.status) {
+        
+        data.getEmployeesByStatus(req.query.status)
+        
+        .then((statusData) => {
+           
+            res.json(statusData);
+       
         }).catch((err) => {
+            
             res.json({message: err});
+       
         });
     }
 
-
-    if (req.query.department >= 1 || req.query.department <= 7) {
-        data.getEmployeesByDepartment(req.query.department).then((data) => {
-            res.json(data);
+    if (req.query.department) {
+        
+        data.getEmployeesByDepartment(req.query.department).then((departmentData) => {
+           
+            res.json(departmentData);
         }).catch((err) => {
+           
             res.json({message: err});
         });
     }
     
-    if (req.query.manager >= 1 || req.query.manager <= 30) {
-        data.getEmployeesByManager(req.query.manager).then((data) => {
-            res.json(data);
+    if (req.query.manager) {
+        
+        data.getEmployeesByManager(req.query.manager).then((managerData) => {
+           
+            res.json(managerData);
         }).catch((err) => {
+            
             res.json({message: err});
         });
     }
 
-
     data.getAllEmployees().then((data) => {
+       
         res.json(data);
     }).catch((err) => {
+       
         res.json({message: err});
     });
 
-
-
 });
 
+app.get("/employee/:num", (req, res) => {
 
-app.get("/employee/:value", (req, res) => {
+        data.getEmployeeByNum(req.params.num)
+        
+        .then((empData) => {
 
-   // if (req.params.value === employeeNum) {
+            res.json(empData);
+        })
+        .catch((err) => {
 
-        data.getEmployeeByNum(req.params.value).then((data) => {
-            res.json(data);
-        }).catch((err) => {
             res.json({message: err});
         });
-
-
-   // }
 
 });
 
@@ -192,9 +190,6 @@ app.get("/departments", (req, res) => {
     
 });
 
-
-
-
 app.use((req, res) => { // if route doesn't match anything above, do this.
 
     res.status(404).send(`
@@ -210,7 +205,6 @@ app.use((req, res) => { // if route doesn't match anything above, do this.
 
 });
 
-
 data.initialize().then((data) => {
 
     app.listen(http_port, function () {
@@ -222,4 +216,3 @@ data.initialize().then((data) => {
     console.log(`No data was fetched, server failed to start up.`);
 });
 
-// end of a1 & a2 -----
