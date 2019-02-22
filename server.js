@@ -1,15 +1,14 @@
 /*********************************************************************************
-* WEB322 – Assignment 02
+* WEB322 – Assignment 03
 * I declare that this assignment is my own work in accordance with Seneca Academic Policy. No part
 * of this assignment has been copied manually or electronically from any other source
 * (including 3rd party web sites) or distributed to other students.
 *
-* Name: Steven Tran Student ID: 105629174 Date: Jan 15th, 2019
+* Name: Steven Tran Student ID: 105629174 Date: Feb 22nd, 2019
 *
-* Online (Heroku) Link: https://a2-steven.herokuapp.com/
+* Online (Heroku) Link: https://a3-steven.herokuapp.com/
 *
 ********************************************************************************/ 
-
 const express = require('express');
 const app = express();
 const path = require('path');
@@ -32,6 +31,7 @@ app.use(express.static('public'));
 app.use(bodyParser.urlencoded({extended: true}));
 
 
+
 // sets up a storage for images in the uploaded folder when an image is uploaded on the site. 
 const storage = multer.diskStorage(
     
@@ -47,6 +47,7 @@ const storage = multer.diskStorage(
     
 );
 
+
 // this upload object has a storage property, for middleware use.
 const upload = multer(
 
@@ -56,11 +57,13 @@ const upload = multer(
 
 );
 
+
 // uploads image and redirects to the images route. upload.single() processes the file upload in form, the imageFIle is value of name attribute in form for file input element.  
 app.post("/images/add", upload.single("imageFile"), (req, res) => {
    
     res.redirect("/images"); 
 });
+
 
 app.post("/employees/add", (req, res) => {
 
@@ -74,13 +77,18 @@ app.post("/employees/add", (req, res) => {
 
 });
 
+
 app.get("/employees/add", (req, res) => {
+
     res.sendFile(path.join(`${__dirname}/views/addEmployee.html`));
 });
 
+
 app.get("/images/add", (req, res) => {
+
     res.sendFile(path.join(`${__dirname}/views/addImage.html`))
 });
+
 
 app.get("/images", (req, res) => { // when in the /images route, it will read the directory of the uploaded images folder and display each image data in JSON format. 
 
@@ -97,13 +105,20 @@ app.get("/images", (req, res) => { // when in the /images route, it will read th
 
 });
 
+
 app.get("/", (req, res) => {
+
     res.sendFile(path.join(`${__dirname}/views/home.html`));
 });
 
+
+
 app.get("/about", (req, res) => {
+
     res.sendFile(path.join(`${__dirname}/views/about.html`));
 });
+
+
 
 app.get("/employees", (req, res) => {
 
@@ -121,8 +136,7 @@ app.get("/employees", (req, res) => {
        
         });
     }
-
-    if (req.query.department) {
+    else if (req.query.department) {
         
         data.getEmployeesByDepartment(req.query.department).then((departmentData) => {
            
@@ -133,24 +147,27 @@ app.get("/employees", (req, res) => {
         });
     }
     
-    if (req.query.manager) {
+    else if (req.query.manager) {
         
         data.getEmployeesByManager(req.query.manager).then((managerData) => {
            
             res.json(managerData);
         }).catch((err) => {
             
+            res.json({message: err}); 
+        });
+    }
+    else {
+        
+        data.getAllEmployees().then((data) => {
+       
+            res.json(data);
+        }).catch((err) => {
+           
             res.json({message: err});
         });
     }
-
-    data.getAllEmployees().then((data) => {
-       
-        res.json(data);
-    }).catch((err) => {
-       
-        res.json({message: err});
-    });
+  
 
 });
 
@@ -171,10 +188,11 @@ app.get("/employee/:num", (req, res) => {
 
 app.get("/managers", (req, res) => {
 
-
     data.getManagers().then((data) => {
+
         res.json(data);
     }).catch((err) => {
+
         res.json({message: err});
     });
 
@@ -183,8 +201,10 @@ app.get("/managers", (req, res) => {
 app.get("/departments", (req, res) => {
     
     data.getDepartments().then((data) => {
+
         res.json(data);
     }).catch((err) => {
+
         res.json({message: err});
     });
     
