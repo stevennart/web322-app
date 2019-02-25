@@ -17,7 +17,7 @@ let employees = []; // used to send the array of employees objects to the client
 let departments = []; // used to send the array of departments objects to the client
 
 module.exports = {
-  initialize: function() {
+  initialize: function () {
     // done
 
     return new Promise((resolve, reject) => {
@@ -28,9 +28,15 @@ module.exports = {
 
         result = JSON.parse(data);
 
-        for (let i = 0; i < result.length; i++) {
-          employees.push(result[i]);
-        }
+        result.forEach((element) => {
+
+          employees.push(element);
+
+        });
+
+        // for (let i = 0; i < result.length; i++) {
+        //   employees.push(result[i]);
+        // }
       });
 
       fs.readFile("./data/departments.json", (err, data) => {
@@ -40,16 +46,22 @@ module.exports = {
 
         result = JSON.parse(data); // parses the read file content and stores it into an array, and then loop through array to push into the departments array created above.
 
-        for (let i = 0; i < result.length; i++) {
-          departments.push(result[i]);
-        }
+        result.forEach((element) => {
+
+          departments.push(element);
+
+        });
+
+        // for (let i = 0; i < result.length; i++) {
+        //   departments.push(result[i]);
+        // }
       });
 
       resolve("success");
     });
   },
 
-  getAllEmployees: function() {
+  getAllEmployees: function () {
     // done
 
     return new Promise((resolve, reject) => {
@@ -61,7 +73,7 @@ module.exports = {
     });
   },
 
-  addEmployee: function(employeeData) {
+  addEmployee: function (employeeData) {
     // done
 
     return new Promise((resolve, reject) => {
@@ -83,17 +95,23 @@ module.exports = {
     });
   },
 
-  getEmployeesByStatus: function(status) {
+  getEmployeesByStatus: function (status) {
     // done
 
     return new Promise((resolve, reject) => {
       let employeeStatus = []; // a filter of all employees that has a pt/ft status
 
-      for (let i = 0; i < employees.length; i++) {
-        if (employees[i].status == status) {
-          employeeStatus.push(employees[i]);
+      // for (let i = 0; i < employees.length; i++) {
+      //   if (employees[i].status == status) {
+      //     employeeStatus.push(employees[i]);
+      //   }
+      // }
+
+      employees.forEach((element) => {
+        if (element.status == status) {
+          employeeStatus.push(element);
         }
-      }
+      });
 
       if (employeeStatus.length === 0) {
         reject("no results returned");
@@ -103,17 +121,23 @@ module.exports = {
     });
   },
 
-  getEmployeeByNum: function(num) {
+  getEmployeeByNum: function (num) {
     // done
 
     return new Promise((resolve, reject) => {
       let empByNum = []; // filters a single employee's employeeNum that matches the num
 
-      for (let i = 0; i < employees.length; i++) {
-        if (employees[i].employeeNum == num) {
-          empByNum = employees[i];
+      // for (let i = 0; i < employees.length; i++) {
+      //   if (employees[i].employeeNum == num) {
+      //     empByNum = employees[i];
+      //   }
+      // }
+
+      employees.forEach((element) => {
+        if (element.employeeNum == num) {
+          empByNum.push(element);
         }
-      }
+      });
 
       if (empByNum.length === 0) {
         reject("no results returned");
@@ -123,7 +147,7 @@ module.exports = {
     });
   },
 
-  getManagers: function() {
+  getManagers: function () {
     return new Promise((resolve, reject) => {
       var managers = []; // used to send the array of manager objects to the client
 
@@ -141,17 +165,23 @@ module.exports = {
     });
   },
 
-  getEmployeesByManager: function(manager) {
+  getEmployeesByManager: function (manager) {
     // done
 
     return new Promise((resolve, reject) => {
       var empByManager = []; // a filter of all employees's managerNum that matches the manager #
 
-      for (let i = 0; i < employees.length; i++) {
-        if (employees[i].employeeManagerNum == manager) {
-          empByManager.push(employees[i]);
+      // for (let i = 0; i < employees.length; i++) {
+      //   if (employees[i].employeeManagerNum == manager) {
+      //     empByManager.push(employees[i]);
+      //   }
+      // }
+
+      employees.forEach((element) => {
+        if (element.employeeManagerNum == manager) {
+          empByManager.push(element);
         }
-      }
+      });
 
       if (empByManager.length == 0) {
         reject("no results returned");
@@ -161,7 +191,7 @@ module.exports = {
     });
   },
 
-  getDepartments: function() {
+  getDepartments: function () {
     return new Promise((resolve, reject) => {
       if (departments.length === 0) {
         reject("no results returned");
@@ -171,25 +201,17 @@ module.exports = {
     });
   },
 
-  getEmployeesByDepartment: function(department) {
+  getEmployeesByDepartment: function (department) {
     // done
 
     return new Promise((resolve, reject) => {
       let departmentNum = []; // a filter of all employes that has a matching department id
 
-      employees.forEach((element, index) => {
+      employees.forEach((element) => {
         if (element.department == department) {
           departmentNum.push(element);
         }
       });
-
-      // for (let i = 0; i < employees.length; i++) {
-
-      //     if (employees[i].department == department) {
-
-      //         departmentNum.push(employees[i]);
-      //     }
-      // }
 
       if (departmentNum.length == 0) {
         reject("no results returned");
