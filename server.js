@@ -127,6 +127,17 @@ app.post("/employees/add", (req, res) => {
 
 });
 
+app.post("/employee/update", (req, res) => {
+
+    console.log(req.body);
+
+    data.updateEmployee(req.body)
+    .then(() => {  res.redirect("/employees");  }) 
+    .catch((err)=> { res.json({message: err})});
+   
+
+});
+
 
 app.get("/employees/add", (req, res) => {
 
@@ -172,110 +183,54 @@ app.get("/about", (req, res) => {
     //res.sendFile(path.join(`${__dirname}/views/about.html`));
     res.render('about.hbs');
 });
-
-
-
+ 
 app.get("/employees", (req, res) => {
 
     if (req.query.status) {
-
+        
         data.getEmployeesByStatus(req.query.status)
+        .then((statusData) => {res.render('employees.hbs', {employees: statusData});  })
+        .catch((err) => { res.render('employees.hbs', {message: err }); });
+    } 
+    else if (req.query.department) {
 
-            .then((statusData) => {
-
-                res.json(statusData);
-
-            }).catch((err) => {
-
-                res.json({
-                    message: err
-                });
-
-            });
-    } else if (req.query.department) {
-
-        data.getEmployeesByDepartment(req.query.department).then((departmentData) => {
-
-            res.json(departmentData);
-        }).catch((err) => {
-
-            res.json({
-                message: err
-            });
-        });
-    } else if (req.query.manager) {
-
-        data.getEmployeesByManager(req.query.manager).then((managerData) => {
-
-            res.json(managerData);
-        }).catch((err) => {
-
-            res.json({
-                message: err
-            });
-        });
-    } else {
-
-        data.getAllEmployees().then((data) => {
-
-           // res.json(data);
-
-           res.render('employees.hbs', {
-               employees: data
-           });
-        }).catch((err) => {
-
-            res.render({
-                message: err
-            });
-        });
+        data.getEmployeesByDepartment(req.query.department)
+        .then((departmentData) => {res.render('employees.hbs', {employees: departmentData});})
+        .catch((err) => {res.render('employees.hbs', {message: err});});
+    } 
+    else if (req.query.manager) {
+        
+        data.getEmployeesByManager(req.query.manager)
+        .then((managerData) => { res.render('employees.hbs', {employees: managerData}); })
+        .catch((err) => {res.render('employees.hbs', { message: err});});
+    } 
+    else {
+        
+        data.getAllEmployees()
+        .then((data) => {res.render('employees.hbs', {employees: data }); })
+        .catch((err) => { res.render('employees.hbs', {message: err }); });
     }
-
-
 });
 
 app.get("/employee/:num", (req, res) => {
 
     data.getEmployeeByNum(req.params.num)
-
-        .then((empData) => {
-
-            res.json(empData);
-        })
-        .catch((err) => {
-
-            res.json({
-                message: err
-            });
-        });
-
+    .then((empData) => {res.render('employee.hbs', {employee: empData}); })
+    .catch((err) => { res.render('employee.hbs',{ message: err}); }); 
 });
 
 app.get("/managers", (req, res) => {
 
-    data.getManagers().then((data) => {
-
-        res.json(data);
-    }).catch((err) => {
-
-        res.json({
-            message: err
-        });
-    });
-
+    data.getManagers()
+    .then((data) => { res.json(data); })
+    .catch((err) => { res.json({  message: err });});
 });
 
 app.get("/departments", (req, res) => {
 
-    data.getDepartments().then((data) => {
-
-        res.json(data);
-    }).catch((err) => {
-
-        res.json({
-            message: err
-        });
-    });
+    data.getDepartments()
+    .then((data) => {res.render('departments.hbs', {departments: data}); })
+    .catch((err) => {res.render('departments.hbs', { message: err });});
 
 });
 

@@ -95,6 +95,36 @@ module.exports = {
     });
   },
 
+  updateEmployee: function (employeeData) {
+
+    return new Promise((resolve, reject) => {
+
+      employeeData.isManager = (employeeData.isManager) ? true : false;
+
+      employees.forEach((element) => {
+
+        if (element.employeeNum == employeeData.employeeNum) {
+
+
+          employees.splice(employeeData.employeeNum - 1, 1, employeeData);
+          // element = employeeData;
+           console.log(employeeData);
+          // console.log(em) 
+          resolve();
+        }
+        // else {
+        //   reject("failed to update employee");
+        // }
+        
+      })
+      
+
+    });
+    
+  },
+
+
+
   getEmployeesByStatus: function (status) {
     // done
 
@@ -135,11 +165,11 @@ module.exports = {
 
       employees.forEach((element) => {
         if (element.employeeNum == num) {
-          empByNum.push(element);
+          empByNum = element; 
         }
       });
 
-      if (empByNum.length === 0) {
+      if (empByNum.length == 0) {
         reject("no results returned");
       }
 
