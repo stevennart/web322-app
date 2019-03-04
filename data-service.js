@@ -87,7 +87,16 @@ module.exports = {
 
     return new Promise((resolve, reject) => {
 
-      employeeData.isManager = (employeeData.isManager) ? true : false;
+      //employeeData.isManager = (employeeData.isManager) ? true : false;
+
+      // ensures incoming data isManager is set to the correct value 
+      //based on the form input when updating on app.post(/employee/update). 
+      
+      if (!employeeData.isManager) {
+        employeeData.isManager = false;
+      } else {
+        employeeData.isManager = true; 
+      }
 
       employees.forEach((element) => {
 
@@ -96,7 +105,7 @@ module.exports = {
 
           employees.splice(employeeData.employeeNum - 1, 1, employeeData);
           // element = employeeData;
-           console.log(employeeData);
+           //console.log(employeeData);
           // console.log(em) 
           resolve();
         }
