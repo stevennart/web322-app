@@ -109,9 +109,7 @@ app.post("/employees/add", (req, res) => {
         res.redirect("/employees");
     }).catch((err) => {
 
-        res.json({
-            message: err
-        });
+        res.json({ message: err });
     });
 
 });
@@ -121,9 +119,15 @@ app.post("/employee/update", (req, res) => {
     //console.log(req.body);
 
     data.updateEmployee(req.body)
-    .then(() => {  res.redirect("/employees");  }) 
-    .catch((err)=> { res.json({message: err})});
-   
+        .then(() => {
+            res.redirect("/employees");
+        })
+        .catch((err) => {
+            res.json({
+                message: err
+            })
+        });
+
 
 });
 
@@ -131,7 +135,15 @@ app.post("/employee/update", (req, res) => {
 app.get("/employees/add", (req, res) => {
 
     //res.sendFile(path.join(`${__dirname}/views/addEmployee.html`));
-    res.render('addEmployee.hbs');
+    //res.render('addEmployee.hbs');
+
+    data.getDepartments()
+        .then((data) => {
+            res.render("addEmployee.hbs", {  departments: data }); })
+        .catch(() => {
+            res.render("addEmployee.hbs", { departments: [] }); });
+
+
 });
 
 
@@ -147,10 +159,12 @@ app.get("/images", (req, res) => { // when in the /images route, it will read th
     fs.readdir(uploadedImagesPath, (err, uploadedImages) => {
 
         if (err) {
-            res.json({message: err});
+            res.json({
+                message: err
+            });
         }
 
-        res.render('images.hbs',{  
+        res.render('images.hbs', {
             images: uploadedImages
         });
 
@@ -172,56 +186,198 @@ app.get("/about", (req, res) => {
     //res.sendFile(path.join(`${__dirname}/views/about.html`));
     res.render('about.hbs');
 });
- 
+
 app.get("/employees", (req, res) => {
 
     if (req.query.status) {
-        
+
         data.getEmployeesByStatus(req.query.status)
-        .then((statusData) => {res.render('employees.hbs', {employees: statusData});  })
-        .catch((err) => { res.render('employees.hbs', {message: err }); });
-    } 
-    else if (req.query.department) {
+            .then((statusData) => {
+                if (statusData.length > 0)
+                res.render('employees.hbs', {
+                    employees: statusData
+                });
+                else
+                res.render('employees.hbs', {
+                    message: "no results"
+                });
+            })
+            .catch((err) => {
+                res.render('employees.hbs', {
+                    message: err
+                });
+            });
+    } else if (req.query.department) {
 
         data.getEmployeesByDepartment(req.query.department)
-        .then((departmentData) => {res.render('employees.hbs', {employees: departmentData});})
-        .catch((err) => {res.render('employees.hbs', {message: err});});
-    } 
-    else if (req.query.manager) {
-        
+            .then((departmentData) => {
+                if (departmentData.length > 0)
+                res.render('employees.hbs', {
+                    employees: departmentData
+                });
+                else
+                res.render('employees.hbs', {
+                    message: "no results"
+                });
+            })
+            .catch((err) => {
+                res.render('employees.hbs', {
+                    message: err
+                });
+            });
+    } else if (req.query.manager) {
+
         data.getEmployeesByManager(req.query.manager)
-        .then((managerData) => { res.render('employees.hbs', {employees: managerData}); })
-        .catch((err) => {res.render('employees.hbs', { message: err});});
-    } 
-    else {
-        
+            .then((managerData) => {
+                if (managerData.length > 0)
+                res.render('employees.hbs', {
+                    employees: managerData
+                });
+                else
+                res.render('employees.hbs', {
+                    message: "no results"
+                });
+            })
+            .catch((err) => {
+                res.render('employees.hbs', {
+                    message: err
+                });
+            });
+    } else {                                         
+
         data.getAllEmployees()
-        .then((data) => {res.render('employees.hbs', {employees: data }); })
-        .catch((err) => { res.render('employees.hbs', {message: err }); });
+            .then((data) => {
+                if (data.length > 0)
+                    res.render('employees.hbs', {
+                        employees: data
+                    });
+                else
+                    res.render('employees.hbs', {
+                        message: "no results"
+                    });
+
+            })
+            .catch((err) => {
+                res.render('employees.hbs', {
+                    message: err
+                });
+            });
     }
 });
 
 app.get("/employee/:num", (req, res) => {
 
-    data.getEmployeeByNum(req.params.num)
-    .then((empData) => {res.render('employee.hbs', {employee: empData}); })
-    .catch((err) => { res.render('employee.hbs',{ message: err}); }); 
+    // initialize an empty object to store the values
+    let viewData = {};
+    data.getEmployeeByNum(req.params.num).then((data) => {
+            if (data) {
+                viewData.employee = data; //store employee data in the "viewData" object as "employee"
+            } else {
+                viewData.employee = null; // set employee to null if none were returned
+            }
+        }).catch(() => {
+            viewData.employee = null; // set employee to null if there was an error
+        }).then(data.getDepartments)
+        .then((data) => {
+            viewData.departments = data; // store department data in the "viewData" object as "departments"
+            // loop through viewData.departments and once we have found the departmentId that matches
+            // the employee's "department" value, add a "selected" property to the matching
+            // viewData.departments object
+            for (let i = 0; i < viewData.departments.length; i++) {
+                if (viewData.departments[i].departmentId == viewData.employee.department) {
+                    viewData.departments[i].selected = true;
+                }
+            }
+        }).catch(() => {
+            viewData.departments = []; // set departments to empty if there was an error
+        }).then(() => {
+            if (viewData.employee == null) { // if no employee - return an error
+                res.status(404).send("Employee Not Found");
+            } else {
+                res.render("employee", {
+                    viewData: viewData
+                }); // render the "employee" view
+            }
+        });
 });
+//});
 
 app.get("/managers", (req, res) => {
 
     data.getManagers()
-    .then((data) => { res.json(data); })
-    .catch((err) => { res.json({  message: err });});
+        .then((data) => {
+            res.json(data);
+        })
+        .catch((err) => {
+            res.json({
+                message: err
+            });
+        });
 });
 
 app.get("/departments", (req, res) => {
 
     data.getDepartments()
-    .then((data) => {res.render('departments.hbs', {departments: data}); })
-    .catch((err) => {res.render('departments.hbs', { message: err });});
+        .then((data) => {
+            if (data.length > 0)
+                res.render('departments.hbs', { departments: data});
+            else
+                res.render('departments.hbs', { message: "no results" }); 
+        })
+        .catch((err) => {
+            res.render('departments.hbs', { message: err  });
+        });
 
 });
+
+app.get("/departments/add", (req, res) => {
+
+    res.render("addDepartment.hbs");
+});
+
+
+app.post('/departments/add', (req, res) => {
+    data.addDepartment(req.body)
+        .then(res.redirect('/departments'))
+        .catch((err) => res.json({ message: err }));
+})
+ 
+app.post("/department/update", (req, res) => {
+    data.updateDepartment(req.body)
+        .then(res.redirect('/departments'))
+        .catch((err) => res.json({  message: err  }));
+});
+
+app.get('/department/:departmentId', (req, res) => {
+    
+    data.getDepartmentById(req.params.departmentId)
+        .then((data) => {
+            if (data.length > 0)
+                res.render("department", { department: data});         
+            else
+                res.status(404).send("Department Not Found");
+        })
+        .catch(() => {
+            res.status(404).send("Department Not Found");                    
+        })
+});
+
+
+
+
+
+app.get('/employees/delete/:empNum', (req, res) => {
+    data.deleteEmployeeByNum(req.params.empNum)
+        .then((data) => {
+            res.redirect("/employees");
+        })
+        .catch(() => {
+            res.status(500).send("Unable to Remove Employee / Employee not found");
+        });
+})
+
+
+
 
 app.use((req, res) => { // if route doesn't match anything above, do this.
 
@@ -245,6 +401,6 @@ data.initialize().then((data) => {
         console.log(`Express http server listening on port ${http_port}....`);
     });
 
-}).catch(() => {
-    console.log(`No data was fetched, server failed to start up.`);
+}).catch((err) => {
+    console.log(err);
 });

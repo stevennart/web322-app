@@ -1,250 +1,289 @@
-const fs = require("fs"); // require fs module to work with file reading.
+const Sequelize = require('sequelize');
 
-let employees = []; // used to send the array of employees objects to the client
+var sequelize = new Sequelize('d8l3apv6bkbf7e', 'fwniybmmtbfdls', '3faf7469ecac7b84484d1f1faefdbb8bbcc80d8787d222e019a9bf258ffe5c2b', {
+  host: 'ec2-23-23-195-205.compute-1.amazonaws.com',
+  dialect: 'postgres',
+  port: 5432,
+  dialectOptions: {
+    ssl: true
+  }
+});
 
-let departments = []; // used to send the array of departments objects to the client
+const Employee = sequelize.define('Employee', {
+  employeeNum: {
+    type: Sequelize.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+  },
+  firstName: Sequelize.STRING,
+  lastName: Sequelize.STRING,
+  email: Sequelize.STRING,
+  SSN: Sequelize.STRING,
+  addressStreet: Sequelize.STRING,
+  addressCity: Sequelize.STRING,
+  addressState: Sequelize.STRING,
+  addressPostal: Sequelize.STRING,
+  martialStatus: Sequelize.STRING,
+  isManager: Sequelize.BOOLEAN,
+  employeeManagerNum: Sequelize.INTEGER,
+  status: Sequelize.STRING,
+  department: Sequelize.INTEGER,
+  hireDate: Sequelize.STRING,
+});
+
+const Department = sequelize.define('Department', {
+  departmentId: {
+    type: Sequelize.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+  },
+  departmentName: Sequelize.STRING
+});
 
 module.exports = {
+
+
+
+
   initialize: function () {
-    // done
 
     return new Promise((resolve, reject) => {
-      fs.readFile("./data/employees.json", (err, data) => {
-        if (err) {
-          reject("unable to read file");
-        }
 
-        result = JSON.parse(data);
-
-        result.forEach((element) => {
-
-          employees.push(element);
-
-        });
-
-        // for (let i = 0; i < result.length; i++) {
-        //   employees.push(result[i]);
-        // }
-      });
-
-      fs.readFile("./data/departments.json", (err, data) => {
-        if (err) {
-          reject("unable to read file");
-        }
-
-        result = JSON.parse(data); // parses the read file content and stores it into an array, and then loop through array to push into the departments array created above.
-
-        result.forEach((element) => {
-
-          departments.push(element);
-
-        });
-
-        // for (let i = 0; i < result.length; i++) {
-        //   departments.push(result[i]);
-        // }
-      });
-
-      resolve("success");
+      sequelize.sync()
+        .then(() => {  resolve(); })
+        .catch(() => { reject("unable to sync the database"); });
     });
+ 
   },
 
   getAllEmployees: function () {
-    // done
-
+    
     return new Promise((resolve, reject) => {
-      if (employees.length === 0) {
-        reject("no results returned");
-      } else {
-        resolve(employees);
-      }
+   
+      sequelize.sync()
+        .then(() => {
+          Employee.findAll()
+            .then(function (data) {
+              resolve(data);
+            }).catch(function () {
+              reject("no results returned");
+            })
+        })
+        .catch((err) => {
+          reject("Unable to sync the database");
+        })
+
+
     });
   },
 
   addEmployee: function (employeeData) {
-    // done
+
+    employeeData.isManager = (employeeData.isManager) ? true : false;
 
     return new Promise((resolve, reject) => {
-      if (!employeeData.isManager) {
-        employeeData.isManager = false;
-      } else {
-        employeeData.isManager = true;
-      }
-
-      employeeData.employeeNum = employees.length + 1;
-
-      employees.push(employeeData);
-
-      resolve("employee added");
-
-      if (employees.length === 0) {
-        reject("no results returned");
-      }
+      Employee.create(employeeData)
+        .then(() => resolve())
+        .catch(() => reject("unable to create employee"))
     });
+   
   },
-
+ 
   updateEmployee: function (employeeData) {
 
-    return new Promise((resolve, reject) => {
-
-      //employeeData.isManager = (employeeData.isManager) ? true : false;
-
-      // ensures incoming data isManager is set to the correct value 
-      //based on the form input when updating on app.post(/employee/update). 
-      
-      if (!employeeData.isManager) {
-        employeeData.isManager = false;
-      } else {
-        employeeData.isManager = true; 
-      }
-
-      employees.forEach((element) => {
-
-        if (element.employeeNum == employeeData.employeeNum) {
-
-
-          employees.splice(employeeData.employeeNum - 1, 1, employeeData);
-          // element = employeeData;
-           //console.log(employeeData);
-          // console.log(em) 
-          resolve();
-        }
-        // else {
-        //   reject("failed to update employee");
-        // }
-        
-      })
-      
-
-    });
+    employeeData.isManager = (employeeData.isManager) ? true : false;
     
+    return new Promise((resolve, reject) => {
+      Employee.update(employeeData, {
+          where: {
+            employeeNum: employeeData.employeeNum
+          }
+        })
+        .then(() => resolve(Employee.update(employeeData, {
+          where: {
+            employeeNum: employeeData.employeeNum
+          }
+        })))
+        .catch(() => reject("unable to update employee"))
+    });
+
   },
 
-
-
   getEmployeesByStatus: function (status) {
-    // done
-
+    
     return new Promise((resolve, reject) => {
-      let employeeStatus = []; // a filter of all employees that has a pt/ft status
+     
+      sequelize.sync()
+        .then(() => {
+          Employee.findAll({
+              
+              where: {
+                status: status
+              }
 
-      // for (let i = 0; i < employees.length; i++) {
-      //   if (employees[i].status == status) {
-      //     employeeStatus.push(employees[i]);
-      //   }
-      // }
+            })
+            .then(function (data) { resolve(data); })
+            .catch(function () {  reject("no results returned"); }) })
+        .catch((err) => { reject("Unable to sync data");  })
 
-      employees.forEach((element) => {
-        if (element.status == status) {
-          employeeStatus.push(element);
-        }
-      });
-
-      if (employeeStatus.length === 0) {
-        reject("no results returned");
-      }
-
-      resolve(employeeStatus);
     });
   },
 
   getEmployeeByNum: function (num) {
-    // done
-
+            
     return new Promise((resolve, reject) => {
-      let empByNum = []; // filters a single employee's employeeNum that matches the num
-
-      // for (let i = 0; i < employees.length; i++) {
-      //   if (employees[i].employeeNum == num) {
-      //     empByNum = employees[i];
-      //   }
-      // }
-
-      employees.forEach((element) => {
-        if (element.employeeNum == num) {
-          empByNum = element; 
+     
+      Employee.findAll({
+        where: {
+          employeeNum: num
         }
-      });
+      })
+      .then((data) => {  resolve(data[0]); })
+      .catch(() => {  reject("no results returned"); })
 
-      if (empByNum.length == 0) {
-        reject("no results returned");
-      }
-
-      resolve(empByNum);
     });
   },
 
-  getManagers: function () {
-    return new Promise((resolve, reject) => {
-      var managers = []; // used to send the array of manager objects to the client
+  // getManagers: function () {
+  //   return new Promise((resolve, reject) => {
+  //     // var managers = []; // used to send the array of manager objects to the client
 
-      for (let i = 0; i < employees.length; i++) {
-        if (employees[i].isManager) {
-          managers.push(employees[i]);
-        }
-      }
+  //     // for (let i = 0; i < employees.length; i++) {
+  //     //   if (employees[i].isManager) {
+  //     //     managers.push(employees[i]);
+  //     //   }
+  //     // }
 
-      if (managers.length === 0) {
-        reject("no results returned");
-      } else {
-        resolve(managers);
-      }
-    });
-  },
+  //     // if (managers.length === 0) {
+  //     //   reject("no results returned");
+  //     // } else {
+  //     //   resolve(managers);
+  //     // }
+
+  //     reject();
+
+  //   });
+  // },
 
   getEmployeesByManager: function (manager) {
-    // done
-
+  
     return new Promise((resolve, reject) => {
-      var empByManager = []; // a filter of all employees's managerNum that matches the manager #
-
-      // for (let i = 0; i < employees.length; i++) {
-      //   if (employees[i].employeeManagerNum == manager) {
-      //     empByManager.push(employees[i]);
-      //   }
-      // }
-
-      employees.forEach((element) => {
-        if (element.employeeManagerNum == manager) {
-          empByManager.push(element);
-        }
-      });
-
-      if (empByManager.length == 0) {
-        reject("no results returned");
-      }
-
-      resolve(empByManager);
-    });
+      Employee.findAll({
+          where:{
+              employeeManagerNum: manager
+          }
+      })
+      .then(()=>resolve(Employee.findAll({
+          where:{
+              employeeManagerNum: manager
+          }
+      })))
+      .catch(()=>reject("no results returned")) 
+     
+    });       
+    
   },
 
   getDepartments: function () {
+
     return new Promise((resolve, reject) => {
-      if (departments.length === 0) {
-        reject("no results returned");
-      } else {
-        resolve(departments);
-      }
+      Department.findAll()
+        .then(() => resolve(Department.findAll()))
+        .catch(() => reject("no results returned"))
     });
+
   },
 
   getEmployeesByDepartment: function (department) {
-    // done
+    
+    return new Promise((resolve, reject) => {
+
+      sequelize.sync().then(() => {
+        Employee.findAll({
+          where: {
+            department: department
+          }
+        })
+        .then((data) => { resolve(data); })
+        .catch((err) => { reject("no results returned"); })
+      })
+
+    });
+  },
+
+  addDepartment: function (departmentData) {
 
     return new Promise((resolve, reject) => {
-      let departmentNum = []; // a filter of all employes that has a matching department id
 
-      employees.forEach((element) => {
-        if (element.department == department) {
-          departmentNum.push(element);
-        }
-      });
+      sequelize.sync().then(function () {
+        Department.create({
+          departmentName: departmentData.departmentName
+        })
+      }).then(function (data) {  resolve(data); })
+      .catch(function () { reject("unable to create department"); })
+    })
 
-      if (departmentNum.length == 0) {
-        reject("no results returned");
-      }
 
-      resolve(departmentNum);
+  },
+
+  updateDepartment: function (departmentData) {
+
+    return new Promise((resolve, reject) => {
+
+      Department.update(departmentData, {
+          where: {
+            departmentId: departmentData.departmentId
+          }
+        })
+        .then(() => resolve(Department.update(departmentData, 
+          {
+          where: {
+            departmentId: departmentData.departmentId
+          } 
+          }
+          )))
+        .catch(() => reject("unable to update department"));
     });
+ 
+  },
+
+  getDepartmentById: function (id) {
+
+    return new Promise((resolve, reject) => {
+      Department.findAll({
+          where: {
+            departmentId: id
+          }
+        })
+        .then(() => resolve(Department.findAll({
+          where: {
+            departmentId: id
+          }
+        })))
+        .catch(() => reject("no results returned"))
+    });
+
+
+
+
+  },
+
+  deleteEmployeeByNum: function (empNum) {
+    return new Promise((resolve, reject) => {
+
+      Employee.destroy({
+
+        where: {
+          employeeNum: empNum
+        }
+
+      })
+      .then(() => { resolve(); })
+      .catch(() => { reject("Fail to delete"); })
+
+    });
+
   }
+
+
 };
