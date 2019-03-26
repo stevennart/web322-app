@@ -1,2 +1,2 @@
-# web322-app
+# Employee Management Application
 Assignment throughout the semester
