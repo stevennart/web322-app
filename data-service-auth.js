@@ -32,7 +32,7 @@ module.exports = {
         return new Promise((resolve, reject) => {
 
             // "mongodb://<steve>:<test123>@ds000000.mlab.com:00000/web322-a6"
-            let db = mongoose.createConnection("mongodb+srv://steven:steven123@web322a6-ey8ny.mongodb.net/test?retryWrites=true"); 
+            let db = mongoose.createConnection("mongodb+srv://steven:racecar@web322a6-ey8ny.mongodb.net/admin?retryWrites=true&w=majority"); 
 
             db.on('error', err => {
                 reject(err);
